@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-import routes.containers as containers
+from routes import containers
 
 app = FastAPI()
 
