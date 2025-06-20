@@ -1,0 +1,181 @@
+= SPEC-001: Container Terminal Management System (CTMS)
+:sectnums:
+:toc:
+
+
+== Background
+
+The company manages a container terminal where tracking container movements, managing yard inventory, and controlling gate operations are currently manual or handled using limited tools. This has led to operational inefficiencies, lack of real-time visibility, and limited accountability. A dedicated CTMS software is needed to digitize and streamline yard and gate operations, support role-based employee access, and ensure better data visibility and traceability.
+
+== Requirements
+
+*Must Have*
+- Employee login system with role-based access (e.g., yard worker, gate operator, supervisor)
+- Ability to add, update, and remove container records
+- Manual tracking of container location in yard zones
+- Gate IN/OUT logging with timestamps
+- Container movement history (audit log)
+- Mobile-friendly interface for use in the yard
+- Basic reporting (inventory, daily movements)
+
+*Should Have*
+- Yard map interface (selectable zones)
+- Notifications for idle or misplaced containers
+- Dashboard for overview (in-yard, incoming, outgoing)
+
+*Could Have*
+- Integration with OneStop and other port/line systems
+- Predictive analytics on container dwell time
+- Crane/truck dispatch planning module
+
+*Won’t Have (Yet)*
+- GPS/sensor tracking
+- Offline mode
+- AI-based routing optimization
+- Automated crane/drone control
+
+
+== Method
+
+=== Architecture Overview
+
+The CTMS includes:
+
+- **Web/Mobile Frontend** (React)
+- **Backend REST API** (Python FastAPI or Node.js)
+- **PostgreSQL Database** (AWS RDS)
+- **Authentication** via AWS Cognito
+- **Gate Operation Module**
+- **Manual Yard Management**
+- **Reporting & Audit Logs**
+
+[plantuml,ctms-architecture,svg]
+----
+@startuml
+actor Employee
+actor GateOperator
+
+database "PostgreSQL (RDS)" as DB
+rectangle "Web App\n(React)" as Frontend
+rectangle "Backend API\n(FastAPI or Node.js)" as Backend
+rectangle "Role/Auth Service\n(AWS Cognito)" as Auth
+rectangle "Reporting Module" as Reports
+
+Employee --> Frontend
+GateOperator --> Frontend
+Frontend --> Auth : Login
+Frontend --> Backend : API Requests
+Backend --> DB : Read/Write Data
+Backend --> Reports : Summaries
+@enduml
+----
+
+=== Database Schema
+
+[cols="1,3"]
+|===
+| Table | Description
+
+| users
+| Login credentials, roles (worker, gate_op, admin)
+
+| containers
+| Container ID, type, line, size, status (in-yard, out-gate)
+
+| container_movements
+| From/To yard zone logs, timestamped
+
+| yard_zones
+| Zone/slot metadata (zone_id, occupied)
+
+| gates
+| IN/OUT logs: container ID, vehicle info, timestamp, direction
+
+| audits
+| All user/system actions
+|===
+
+=== Functional Logic
+
+- **Gate Operations**:
+  - Log IN/OUT events
+  - Create or update container record
+
+- **Manual Yard Movement**:
+  - Select new zone from available slots
+  - Append entry to `container_movements`
+
+- **Inventory Tracking**:
+  - Fetch containers by zone, line, status
+
+- **Reports**:
+  - Daily summary of movements
+  - Yard inventory
+  - Historical movements
+
+- **Roles**:
+  - Yard Worker: Move containers, view yard
+  - Gate Operator: Register IN/OUT entries
+  - Admin: Manage users, audit logs, reports
+
+
+== Implementation
+
+=== Phase 1: System Setup
+
+- AWS setup: RDS PostgreSQL, S3, ECS/Elastic Beanstalk, Cognito
+- GitHub repo with `/frontend` and `/backend`
+
+=== Phase 2: Backend
+
+- User login & role validation
+- Containers API (CRUD)
+- Yard zones & movements API
+- Gate operation endpoints
+- Audit & reporting APIs
+
+=== Phase 3: Frontend
+
+- Login UI
+- Dashboard (in-yard, outbound, idle)
+- Yard map (dropdown/grid for zones)
+- IN/OUT gate forms
+- Container history & audit views
+
+=== Phase 4: Reporting
+
+- Inventory report
+- Movement report (by container, date range)
+- User action logs
+
+=== Phase 5: Deployment
+
+- Build React app → Deploy to S3 + CloudFront
+- Backend containerized → Deploy to ECS or Beanstalk
+- Set up domain with Route 53
+- Enable HTTPS via AWS Certificate Manager
+
+=== Phase 6: Testing & Launch
+
+- Unit + integration testing
+- UAT with yard & gate teams
+- Final deploy + training
+
+
+== Milestones
+
+. Week 1: AWS infrastructure + repo setup
+. Week 2-3: Backend core APIs and DB schema
+. Week 4: Frontend login and container dashboard
+. Week 5: Gate operation flow and yard movements
+. Week 6: Reporting features
+. Week 7: Final deployment and feedback round
+. Week 8: Production launch
+
+
+== Gathering Results
+
+- **Usage Metrics**: Login activity, number of IN/OUT records per day
+- **Operational Accuracy**: Reduction in misplaced/missing containers
+- **User Feedback**: Yard and gate team input post-launch
+- **System Logs**: Review audit logs and error reports
