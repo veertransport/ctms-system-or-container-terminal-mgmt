@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from app.routes import containers
+import routes.containers as containers
 
 app = FastAPI()
 
-# Register container routes
 app.include_router(containers.router)
 
 @app.get("/")
